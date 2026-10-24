@@ -1,0 +1,31 @@
+name: Sync upstream
+
+on:
+  schedule:
+    # 每 15 分钟尝试同步一次
+    - cron: "7,22,37,52 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Sync updates from upstream
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_BRANCH: main
+        run: |
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            "repos/${GITHUB_REPOSITORY}/merge-upstream" \
+            -f branch="$TARGET_BRANCH"
